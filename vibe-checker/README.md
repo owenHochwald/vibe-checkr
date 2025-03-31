@@ -1,6 +1,6 @@
-# patch-mind README
+# vibe-checker README
 
-This is the README for your extension "patch-mind". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "vibe-checker". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 
