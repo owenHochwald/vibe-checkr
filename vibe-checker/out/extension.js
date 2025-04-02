@@ -35,25 +35,40 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+const child_process_1 = require("child_process");
 function activate(context) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "vibe-checker" is now active!');
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
     const disposable = vscode.commands.registerCommand('vibe-checker.helloWorld', () => {
-        // The code you place here will be executed every time your command is executed
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World from vibe-checker!');
+        // getting path to python script
+        const pythonScriptPath = vscode.Uri.joinPath(context.extensionUri, 'src', 'scripts', 'main.py').fsPath;
+        // spawning the process with test arguments
+        const pythonProcess = (0, child_process_1.spawn)('python', [pythonScriptPath, 'hello', 'world']);
+        // Handle stdout data
+        pythonProcess.stdout?.on('data', (data) => {
+            const output = data.toString().trim();
+            vscode.window.showInformationMessage(`Output from Python: ${output}`);
+        });
+        // catches errors and shows to the screen
+        pythonProcess.stderr?.on('data', (data) => {
+            const errorMsg = data.toString().trim();
+            vscode.window.showErrorMessage(`Python script error: ${errorMsg}`);
+        });
+        // listen for when python process is finished
+        pythonProcess.on('close', (code) => {
+            if (code !== 0) {
+                vscode.window.showErrorMessage(`Python process exited with code ${code}`);
+            }
+        });
+        // Add a timeout error in case the process hangs
+        const timeout = setTimeout(() => {
+            vscode.window.showWarningMessage('Python process seems to be taking too long. Check the logs.');
+        }, 5000);
+        pythonProcess.on('exit', () => {
+            clearTimeout(timeout);
+        });
     });
     context.subscriptions.push(disposable);
 }
-// This method is called when your extension is deactivated
 function deactivate() { }
 //# sourceMappingURL=extension.js.map
