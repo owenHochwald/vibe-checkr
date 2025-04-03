@@ -8,6 +8,6 @@ export interface ContextData {
 export interface IssueData {
     title: String,
     line: number,
-    severity : number,
+    severity : "Information" | "Error" | "Warning",
     description: String;
 }
