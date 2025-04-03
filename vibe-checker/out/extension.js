@@ -36,37 +36,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
-const child_process_1 = require("child_process");
+const path = require("path");
 function activate(context) {
     console.log('Congratulations, your extension "vibe-checker" is now active!');
-    const disposable = vscode.commands.registerCommand('vibe-checker.helloWorld', () => {
-        // getting path to python script
-        const pythonScriptPath = vscode.Uri.joinPath(context.extensionUri, 'src', 'scripts', 'main.py').fsPath;
-        // spawning the process with test arguments
-        const pythonProcess = (0, child_process_1.spawn)('python', [pythonScriptPath, 'hello', 'world']);
-        // Handle stdout data
-        pythonProcess.stdout?.on('data', (data) => {
-            const output = data.toString().trim();
-            vscode.window.showInformationMessage(`Output from Python: ${output}`);
-        });
-        // catches errors and shows to the screen
-        pythonProcess.stderr?.on('data', (data) => {
-            const errorMsg = data.toString().trim();
-            vscode.window.showErrorMessage(`Python script error: ${errorMsg}`);
-        });
-        // listen for when python process is finished
-        pythonProcess.on('close', (code) => {
-            if (code !== 0) {
-                vscode.window.showErrorMessage(`Python process exited with code ${code}`);
-            }
-        });
-        // Add a timeout error in case the process hangs
-        const timeout = setTimeout(() => {
-            vscode.window.showWarningMessage('Python process seems to be taking too long. Check the logs.');
-        }, 5000);
-        pythonProcess.on('exit', () => {
-            clearTimeout(timeout);
-        });
+    const disposable = vscode.commands.registerCommand('vibe-checker.reviewCode', async () => {
+        // collect context
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showInformationMessage("No active code editor - please open a file to review.");
+            return;
+        }
+        if (!editor.selection.isEmpty) {
+            vscode.window.showInformationMessage("Text has been selectedd");
+        }
+        // gather metadata
+        const input = editor.document.getText();
+        const language = editor.document.languageId;
+        const file_name = path.basename(editor.document.fileName);
+        const line_count = editor.document.lineCount;
+        vscode.window.showInformationMessage(language);
+        // TODO: implement call deepseek.ts
     });
     context.subscriptions.push(disposable);
 }

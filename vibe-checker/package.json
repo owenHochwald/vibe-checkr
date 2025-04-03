@@ -17,13 +17,6 @@
                 "command": "vibe-checker.reviewCode",
                 "title": "Review Code"
             }
-        ],
-        "keybindings": [
-            {
-                "command": "vibe-checker.reviewCode",
-                "key": "ctrl+shift+y+b",
-                "when": "editorTextFocus"
-            }
         ]
     },
     "scripts": {
