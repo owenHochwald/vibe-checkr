@@ -3,9 +3,8 @@ import { ContextData } from './types/types';
 import { getContext } from './utils/utils';
 import { analyzeCode } from './deepseek';
 
-export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "vibe-checker" is now active!');
 
+export function activate(context: vscode.ExtensionContext) {
 
     const disposable = vscode.commands.registerCommand('vibe-checker.reviewCode', async () => {
         vscode.window.withProgress(
@@ -27,7 +26,12 @@ export function activate(context: vscode.ExtensionContext) {
                 if (ctxData.input.length > 0) {
                     try {
                         const results = await analyzeCode(ctxData);
-                        return results;
+
+                        const output = vscode.window.createOutputChannel("Code Review Results");
+                        output.clear();
+                        output.appendLine(results?.toString() || '');
+                        output.show();
+
                     } catch (e: any) {
                         console.error("Error analyzing code:", e);
                     }

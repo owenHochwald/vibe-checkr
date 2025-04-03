@@ -39,7 +39,6 @@ const vscode = __importStar(require("vscode"));
 const utils_1 = require("./utils/utils");
 const deepseek_1 = require("./deepseek");
 function activate(context) {
-    console.log('Congratulations, your extension "vibe-checker" is now active!');
     const disposable = vscode.commands.registerCommand('vibe-checker.reviewCode', async () => {
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -57,7 +56,10 @@ function activate(context) {
             if (ctxData.input.length > 0) {
                 try {
                     const results = await (0, deepseek_1.analyzeCode)(ctxData);
-                    return results;
+                    const output = vscode.window.createOutputChannel("Code Review Results");
+                    output.clear();
+                    output.appendLine(results?.toString() || '');
+                    output.show();
                 }
                 catch (e) {
                     console.error("Error analyzing code:", e);

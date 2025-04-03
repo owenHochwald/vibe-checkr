@@ -10,7 +10,18 @@ the affected line number(s), an rating from 0-100 on the severity of the issue, 
       "severity": 85,
       "description": "The variable 'userInput' is used without checking if it's null, which may cause a runtime error."
     },
-    ...
+    {
+      "title": "Indentation Error",
+      "line": 2,
+      "severity": 90,
+      "description": "Python expects consistent indentation; incorrect indentation will cause a syntax error."
+    },
+    {
+      "title": "Confusing 'is' with '=='",
+      "line": 5,
+      "severity": 70,
+      "description": "'is' checks for object identity, while '==' checks for value equality. Using 'is' incorrectly can cause logical errors."
+    },
   ]
 }
 

@@ -1,17 +1,22 @@
 import { readFileSync } from "fs";
 import OpenAI from "openai";
-import { join } from "path";
+import path, { join } from "path";
 import { ContextData } from "./types/types";
+import * as dotenv from 'dotenv';
 
-const openai = new OpenAI({
-    baseURL: process.env.BASE_URL,
-    apiKey: process.env.API_KEY
-});
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-const promptPath = join(__dirname, "resources", "prompt.txt");
-const prompt = readFileSync(promptPath, "utf-8");
 
 export async function analyzeCode(props: ContextData): Promise<String | null> {
+
+    const openai = new OpenAI({
+        baseURL: process.env.BASE_URL,
+        apiKey: process.env.API_KEY
+    });
+
+    const promptPath = path.join(__dirname, '..', 'src', 'resources', 'prompt.txt');
+
+    const prompt = readFileSync(promptPath, "utf-8");
 
     const completion = await openai.chat.completions.create({
         messages: [{ role: "system", content: prompt }],
