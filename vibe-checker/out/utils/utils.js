@@ -32,21 +32,22 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.activate = activate;
-exports.deactivate = deactivate;
+exports.getContext = getContext;
+const path_1 = __importDefault(require("path"));
 const vscode = __importStar(require("vscode"));
-const utils_1 = require("./utils/utils");
-const path = require("path");
-function activate(context) {
-    console.log('Congratulations, your extension "vibe-checker" is now active!');
-    const disposable = vscode.commands.registerCommand('vibe-checker.reviewCode', async () => {
-        // collect context
-        const editor = vscode.window.activeTextEditor;
-        const { input, language, file_name, line_count } = (0, utils_1.getContext)(editor) ?? {};
-        // TODO: implement call deepseek.ts
-    });
-    context.subscriptions.push(disposable);
+function getContext(editor) {
+    if (!editor) {
+        vscode.window.showInformationMessage("No active code editor - please open a file to review.");
+        return;
+    }
+    const input = editor.selection.isEmpty ? editor.document.getText() : editor.document.getText(editor.selection);
+    const language = editor.document.languageId;
+    const file_name = path_1.default.basename(editor.document.fileName);
+    const line_count = editor.document.lineCount;
+    return { input, language, file_name, line_count };
 }
-function deactivate() { }
-//# sourceMappingURL=extension.js.map
+//# sourceMappingURL=utils.js.map

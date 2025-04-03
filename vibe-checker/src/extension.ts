@@ -1,5 +1,9 @@
 import * as vscode from 'vscode';
+import { ContextData } from './types/types';
+import { getContext } from './utils/utils';
 const path = require("path");
+
+
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "vibe-checker" is now active!');
@@ -8,26 +12,14 @@ export function activate(context: vscode.ExtensionContext) {
         async () => {
             // collect context
             const editor = vscode.window.activeTextEditor;
-            if (!editor) {
-                vscode.window.showInformationMessage("No active code editor - please open a file to review.");
-                return;
-            }
-            if (!editor.selection.isEmpty) {
-                vscode.window.showInformationMessage("Text has been selectedd");
-            }
-            // gather metadata
-            const input = editor.document.getText();
-            const language = editor.document.languageId;
-            const file_name = path.basename(editor.document.fileName);
-            const line_count = editor.document.lineCount;
-            vscode.window.showInformationMessage(language);
+            const {input, language, file_name, line_count} = getContext(editor) ?? {};
 
             // TODO: implement call deepseek.ts
-    
-    });
+
+        });
 
     context.subscriptions.push(disposable);
 
 }
 
-export function deactivate() {}
+export function deactivate() { }
