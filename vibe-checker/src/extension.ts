@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { ContextData } from './types/types';
+import { ContextData, IssueData } from './types/types';
 import { getContext } from './utils/utils';
 import { analyzeCode } from './deepseek';
+
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -27,10 +28,11 @@ export function activate(context: vscode.ExtensionContext) {
                     try {
                         const results = await analyzeCode(ctxData);
 
-                        const output = vscode.window.createOutputChannel("Code Review Results");
-                        output.clear();
-                        output.appendLine(results?.toString() || '');
-                        output.show();
+                        const diagnostics = createEditorAnnotations(results);
+                        const collection = vscode.languages.createDiagnosticCollection('deep-code-review');
+                        if (editor) {
+                            collection.set(editor.document.uri, diagnostics);
+                        }
 
                     } catch (e: any) {
                         console.error("Error analyzing code:", e);
@@ -41,8 +43,39 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposable);
+}
 
+function createEditorAnnotations(issues: any): vscode.Diagnostic[] | undefined  {
+    let parsedIssues;
+
+    // parse input
+    if (typeof issues === "string") {
+        try {
+            parsedIssues = JSON.parse(issues);
+        } catch (error) {
+            console.error("Invalid JSON string:", error);
+            return;
+        }
+    } else {
+        parsedIssues = issues;
+    }
+
+    // ensure parsedIssues is valid
+    if (!parsedIssues || !Array.isArray(parsedIssues.issues)) {
+        console.error("Parsed issues are not in the expected format:", parsedIssues);
+        return;
+    }
+
+    const diagnostics: vscode.Diagnostic[] = [];
+
+    parsedIssues.issues.forEach((issue: IssueData) => {
+        const line = issue.line - 1;
+        const range = new vscode.Range(line, 0, line, Number.MAX_SAFE_INTEGER);
+        const diagnostic = new vscode.Diagnostic(range, issue.title.toString(), vscode.DiagnosticSeverity.Warning);
+        diagnostics.push(diagnostic);
+    });
+    return diagnostics;
 
 }
 
-export function deactivate() { }
+export function deactivate() { };
