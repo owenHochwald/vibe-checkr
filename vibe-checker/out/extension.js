@@ -37,14 +37,33 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const utils_1 = require("./utils/utils");
-const path = require("path");
+const deepseek_1 = require("./deepseek");
 function activate(context) {
     console.log('Congratulations, your extension "vibe-checker" is now active!');
     const disposable = vscode.commands.registerCommand('vibe-checker.reviewCode', async () => {
-        // collect context
-        const editor = vscode.window.activeTextEditor;
-        const { input, language, file_name, line_count } = (0, utils_1.getContext)(editor) ?? {};
-        // TODO: implement call deepseek.ts
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Doing a deep analysis of your code...",
+            cancellable: false
+        }, async () => {
+            // collect context
+            const editor = vscode.window.activeTextEditor;
+            const ctxData = (0, utils_1.getContext)(editor) ?? {
+                input: '',
+                language: '',
+                file_name: '',
+                line_count: 0
+            };
+            if (ctxData.input.length > 0) {
+                try {
+                    const results = await (0, deepseek_1.analyzeCode)(ctxData);
+                    return results;
+                }
+                catch (e) {
+                    console.error("Error analyzing code:", e);
+                }
+            }
+        });
     });
     context.subscriptions.push(disposable);
 }
