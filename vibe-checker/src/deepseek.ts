@@ -16,7 +16,10 @@ export async function analyzeCode(props: ContextData): Promise<String | null> {
     const completion = await openai.chat.completions.create({
         messages: [{ role: "system", content: prompt }],
         model: "deepseek-chat",
-        temperature: 0.0
+        temperature: 0.0,
+        response_format: {
+            'type': 'json_object'
+        }
 
     });
 
