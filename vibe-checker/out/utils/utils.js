@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getContext = getContext;
+exports.createEditorAnnotations = createEditorAnnotations;
 const path_1 = __importDefault(require("path"));
 const vscode = __importStar(require("vscode"));
 function getContext(editor) {
@@ -49,5 +50,34 @@ function getContext(editor) {
     const file_name = path_1.default.basename(editor.document.fileName);
     const line_count = editor.document.lineCount;
     return { input, language, file_name, line_count };
+}
+function createEditorAnnotations(issues) {
+    let parsedIssues;
+    // parse input
+    if (typeof issues === "string") {
+        try {
+            parsedIssues = JSON.parse(issues);
+        }
+        catch (error) {
+            console.error("Invalid JSON string:", error);
+            return;
+        }
+    }
+    else {
+        parsedIssues = issues;
+    }
+    // ensure parsedIssues is valid
+    if (!parsedIssues || !Array.isArray(parsedIssues.issues)) {
+        console.error("Parsed issues are not in the expected format:", parsedIssues);
+        return;
+    }
+    const diagnostics = [];
+    parsedIssues.issues.forEach((issue) => {
+        const line = issue.line - 1;
+        const range = new vscode.Range(line, 0, line, Number.MAX_SAFE_INTEGER);
+        const diagnostic = new vscode.Diagnostic(range, issue.title.toString(), vscode.DiagnosticSeverity.Warning);
+        diagnostics.push(diagnostic);
+    });
+    return diagnostics;
 }
 //# sourceMappingURL=utils.js.map
