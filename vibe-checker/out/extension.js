@@ -40,19 +40,22 @@ const utils_1 = require("./utils/utils");
 const deepseek_1 = require("./deepseek");
 function activate(context) {
     const disposable = vscode.commands.registerCommand('vibe-checker.reviewCode', async () => {
+        // collect context
+        const editor = vscode.window.activeTextEditor;
+        const ctxData = (0, utils_1.getContext)(editor) ?? {
+            input: '',
+            language: '',
+            file_name: '',
+            line_count: 0
+        };
+        // information to display to screen while awaiting response
+        const lineInfo = ctxData.line_count > 1 ? "lines" : "line";
+        const progressTitle = `Reviewing ${ctxData.line_count} ${ctxData.language} ${lineInfo} from ${ctxData.file_name}...`;
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Doing a deep analysis of your code...",
+            title: progressTitle,
             cancellable: false
         }, async () => {
-            // collect context
-            const editor = vscode.window.activeTextEditor;
-            const ctxData = (0, utils_1.getContext)(editor) ?? {
-                input: '',
-                language: '',
-                file_name: '',
-                line_count: 0
-            };
             if (ctxData.input.length > 0) {
                 try {
                     // generate issues

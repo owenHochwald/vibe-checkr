@@ -49,10 +49,18 @@ async function analyzeCode(props) {
     });
     const promptPath = path_1.default.join(__dirname, '..', 'src', 'resources', 'prompt.txt');
     const prompt = (0, fs_1.readFileSync)(promptPath, "utf-8");
+    const code = {
+        "file_name": props.file_name,
+        "language": props.language,
+        "line_count": props.line_count,
+        "code_to_review": props.input
+    };
     const completion = await openai.chat.completions.create({
-        messages: [{ role: "system", content: prompt }],
+        messages: [
+            { role: "system", content: prompt },
+            { role: 'user', content: JSON.stringify(code) }
+        ],
         model: "deepseek-chat",
-        temperature: 0.0,
         response_format: {
             'type': 'json_object'
         }
