@@ -30,23 +30,30 @@ export function activate(context: vscode.ExtensionContext) {
                 cancellable: false
             },
             async () => {
-
-
                 if (ctxData.input.length > 0) {
                     try {
-                        // generate issues
                         const results = await analyzeCode(ctxData);
 
-                        // create editor annotations show in "Problems"
+                        if (!results) {
+                            vscode.window.showErrorMessage("Failed to analyze code. Please try again.");
+                            return;
+                        }
+
                         const diagnostics = createEditorAnnotations(results);
                         const collection = vscode.languages.createDiagnosticCollection('deep-code-review');
                         if (editor) {
-                            collection.set(editor.document.uri, diagnostics);
+                            collection.set(editor.document.uri, diagnostics || []);
                         }
 
+                        if (!diagnostics || diagnostics.length === 0) {
+                            vscode.window.showInformationMessage("No issues found in the code.");
+                        }
                     } catch (e: any) {
                         console.error("Error analyzing code:", e);
+                        vscode.window.showErrorMessage("An error occurred during code analysis.");
                     }
+                } else {
+                    vscode.window.showWarningMessage("No code selected or file is empty.");
                 }
             }
         );

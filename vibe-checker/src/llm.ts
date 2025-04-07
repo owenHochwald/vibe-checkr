@@ -1,43 +1,49 @@
 import { readFileSync } from "fs";
-import OpenAI from "openai";
-import path, { join } from "path";
+import path from "path";
+import axios from "axios"; 
 import { ContextData } from "./types/types";
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
+export async function analyzeCode(props: ContextData): Promise<string | null> {
+    try {
+        const promptPath = path.join(__dirname, '..', 'src', 'resources', 'prompt.txt');
+        const prompt = readFileSync(promptPath, "utf-8");
 
-export async function analyzeCode(props: ContextData): Promise<String | null> {
+        const code = {
+            file_name: props.file_name,
+            language: props.language,
+            line_count: props.line_count,
+            code_to_review: props.input
+        };
 
-    const openai = new OpenAI({
-        baseURL: process.env.BASE_URL,
-        apiKey: process.env.API_KEY
-    });
+        console.log("Sending code to DeepSeek for analysis:", code);
 
-    const promptPath = path.join(__dirname, '..', 'src', 'resources', 'prompt.txt');
+        const response = await axios.post(
+            process.env.DEEPSEEK_API_URL || "https://api.deepseek.com",
+            {
+                prompt,
+                code
+            },
+            {
+                headers: {
+                    "Authorization": `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
 
-    const prompt = readFileSync(promptPath, "utf-8");
+        const results = response.data;
+        if (!results || !results.issues) {
+            console.error("No results returned from DeepSeek.");
+            return null;
+        }
 
-    const code = {
-        "file_name" : props.file_name,
-        "language" : props.language,
-        "line_count" : props.line_count,
-        "code_to_review" : props.input
-    };
-
-    const completion = await openai.chat.completions.create({
-        messages: [
-            { role: "system", content: prompt },
-            { role: 'user', content: JSON.stringify(code) }
-        ],
-        model: "deepseek-chat",
-        response_format: {
-            'type': 'json_object'
-        },
-        temperature: 1
-
-    });
-
-    const results = completion.choices[0].message.content;
-    return results;
+        console.log("Analysis results received:", results);
+        return JSON.stringify(results);
+    } catch (error) {
+        console.error("Error during code analysis:", error);
+        return null;
+    }
 }

@@ -18,35 +18,31 @@ export function getContext(editor: vscode.TextEditor | undefined): ContextData |
 export function createEditorAnnotations(issues: any): vscode.Diagnostic[] | undefined {
     let parsedIssues;
 
-    // parse input
-    if (typeof issues === "string") {
-        try {
-            parsedIssues = JSON.parse(issues);
-        } catch (error) {
-            console.error("Invalid JSON string:", error);
-            return;
-        }
-    } else {
-        parsedIssues = issues;
-    }
-
-    // ensure parsedIssues is valid
-    if (!parsedIssues || !Array.isArray(parsedIssues.issues)) {
-        console.error("Parsed issues are not in the expected format:", parsedIssues);
+    try {
+        parsedIssues = typeof issues === "string" ? JSON.parse(issues) : issues;
+    } catch (error) {
+        console.error("Failed to parse issues JSON:", error);
+        vscode.window.showErrorMessage("Failed to parse issues from the analysis. Please try again.");
         return;
     }
 
-    const diagnostics: vscode.Diagnostic[] = [];
+    if (!parsedIssues || !Array.isArray(parsedIssues.issues)) {
+        console.error("Parsed issues are not in the expected format:", parsedIssues);
+        vscode.window.showErrorMessage("Unexpected format in analysis results.");
+        return;
+    }
 
-    parsedIssues.issues.forEach((issue: IssueData) => {
+    if (parsedIssues.issues.length === 0) {
+        vscode.window.showInformationMessage("No issues found in the code.");
+        return [];
+    }
+
+    const diagnostics: vscode.Diagnostic[] = parsedIssues.issues.map((issue: IssueData) => {
         const line = issue.line - 1;
-        // cast to an explict type if model hasn't already
         const severity = issue.severity as "Information" | "Error" | "Warning";
-        const diagnostic = generateDiagnostic(line, issue.title.toString(), severity);
-        if (diagnostic) {
-            diagnostics.push(diagnostic);
-        }
-    });
+        return generateDiagnostic(line, issue.title.toString(), severity);
+    }).filter(Boolean) as vscode.Diagnostic[];
+
     return diagnostics;
 }
 
