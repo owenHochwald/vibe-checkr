@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ContextData } from './types/types';
 import { createEditorAnnotations, getContext } from './utils/utils';
-import { analyzeCode } from './deepseek';
+import { analyzeCode } from './llm';
 
 
 
@@ -16,6 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
             file_name: '',
             line_count: 0
         };
+        console.log(ctxData.input);
 
         // information to display to screen while awaiting response
         const lineInfo = ctxData.line_count > 1 ? "lines" : "line";

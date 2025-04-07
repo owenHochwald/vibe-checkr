@@ -42,7 +42,7 @@ export function createEditorAnnotations(issues: any): vscode.Diagnostic[] | unde
         const line = issue.line - 1;
         // cast to an explict type if model hasn't already
         const severity = issue.severity as "Information" | "Error" | "Warning";
-        const diagnostic = generateDiagnostic(line, issue.title, severity);
+        const diagnostic = generateDiagnostic(line, issue.title.toString(), severity);
         if (diagnostic) {
             diagnostics.push(diagnostic);
         }
@@ -50,27 +50,28 @@ export function createEditorAnnotations(issues: any): vscode.Diagnostic[] | unde
     return diagnostics;
 }
 
-function generateDiagnostic(line: number, title: IssueData["title"], severity: IssueData["severity"]): vscode.Diagnostic | undefined {
-
-    const severityMap = {
-        Information: vscode.DiagnosticSeverity.Information,
-        Error: vscode.DiagnosticSeverity.Error,
-        Warning: vscode.DiagnosticSeverity.Warning
+function generateDiagnostic(
+    line: number,
+    title: string,
+    severity: "Information" | "Error" | "Warning"
+): vscode.Diagnostic | undefined {
+    const severityMap: Record<string, vscode.DiagnosticSeverity> = {
+        "Information": vscode.DiagnosticSeverity.Information,
+        "Error": vscode.DiagnosticSeverity.Error,
+        "Warning": vscode.DiagnosticSeverity.Warning
     };
 
-
     const diagnosticSeverity = severityMap[severity];
-    if (!diagnosticSeverity) {
+    if (diagnosticSeverity === undefined) {
+        console.warn(`Unknown severity level: ${severity}`);
         return undefined;
     }
 
     const range = new vscode.Range(line, 0, line, Number.MAX_SAFE_INTEGER);
 
-    const diagnostic = new vscode.Diagnostic(
+    return new vscode.Diagnostic(
         range,
-        title.toString(),
+        title,
         diagnosticSeverity
     );
-
-    return diagnostic;
 }

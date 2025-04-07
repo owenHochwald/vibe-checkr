@@ -33,7 +33,8 @@ export async function analyzeCode(props: ContextData): Promise<String | null> {
         model: "deepseek-chat",
         response_format: {
             'type': 'json_object'
-        }
+        },
+        temperature: 1
 
     });
 
